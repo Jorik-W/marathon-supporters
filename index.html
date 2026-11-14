@@ -123,7 +123,7 @@ function seg(a,b){const o=[at(a)];for(let i=0;i<cum.length;i++)if(cum[i]>a&&cum[
 
 let S={start:36000,pf:280,ps:310,logs:{},live:false,min:0,sel:-1};
 try{Object.assign(S,JSON.parse(localStorage.getItem("sup26")||"{}"))}catch(e){}
-{const d=new Date();S.live=d.getFullYear()==2026&&d.getMonth()==10&&d.getDate()==15}
+S.live=true;
 const save=()=>{try{localStorage.setItem("sup26",JSON.stringify({start:S.start,pf:S.pf,ps:S.ps,logs:S.logs}))}catch(e){}};
 
 function anchors(){const a=[{km:0,t:S.start}];Object.keys(S.logs).map(Number).sort((x,y)=>SP[x][0]-SP[y][0]).forEach(i=>a.push({km:SP[i][0],t:S.logs[i]}));return a}
