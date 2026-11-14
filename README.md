@@ -1,6 +1,6 @@
 # Supporters page: host on GitHub Pages
 
-`index.html` is the full page: OpenStreetMap (Leaflet) map, embedded GPX course, pace range, logged passing times, live location. One file, no build step.
+`index.html` is the full page: OpenStreetMap (Leaflet) map, embedded GPX course, estimated passing and finish times, logged passing times, and live location. One file, no build step.
 
 ## Host it (web UI, about 3 minutes)
 1. github.com, New repository. Name it e.g. `marathon-supporters`. Make it **Public** (Pages on private repos needs a paid plan). Create.
@@ -21,7 +21,8 @@ Then do step 3 above.
 
 ## Change things
 Edit `index.html` on GitHub (pencil icon) and commit. The site updates in about a minute.
-- Default start and paces: `S={start:36000,pf:280,ps:310,...}` in seconds (36000 = 10:00, 280 = 4:40/km, 310 = 5:10/km).
+- Default start and estimated paces: `DEFAULTS={start:36000,pf:280,ps:310}` in seconds (36000 = 10:00, 280 = 4:40/km, 310 = 5:10/km). Paces are used for estimates but are not shown as controls.
+- Entering a passing time collapses earlier points; tap a point heading to reopen it and correct its time. **Alles resetten** clears passing times and restores the default start and paces.
 - Plek texts and links: the `SP` array.
 - Course: `POLY` (encoded polyline) and `TOT` (km).
 

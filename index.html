@@ -49,6 +49,9 @@ a{color:var(--track);font-weight:600}
 .row b{font-variant-numeric:tabular-nums}
 .ctl label{display:block;margin-top:12px}
 .spot{margin-bottom:12px}
+.spot>summary{cursor:pointer}
+.spot:not([open])>.hd{margin-bottom:0}
+.spot-body{padding-top:2px}
 .hd{display:flex;align-items:center;gap:12px;margin-bottom:6px}
 .ti{flex:1}
 .num{width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:800;flex:none}
@@ -72,7 +75,7 @@ a{color:var(--track);font-weight:600}
 <div id="map" role="region" aria-label="Kaart met parcours"></div>
 <div id="zb"><button id="zr">Alles</button><button id="zl" aria-pressed="false">Locatie</button><button id="zm" hidden>Naar mij</button></div>
 </div>
-<p class="mute" style="margin-top:8px">Het oranje stuk is waar de loper kan zijn tussen het snelste en langzaamste tempo. Tik op een nummer voor de plek.</p>
+<p class="mute" style="margin-top:8px">Het oranje stuk toont waar de loper kan zijn. Tik op een nummer voor de plek.</p>
 <p class="mute" id="gp" style="margin-top:4px"></p>
 
 <h2>Waar is de loper?</h2>
@@ -81,18 +84,16 @@ a{color:var(--track);font-weight:600}
 <input type="range" id="sl" min="0" max="300" step="1" aria-label="Tijd na de start">
 </div>
 
-<h2>Start en tempo</h2>
+<h2>Start</h2>
 <div class="card ctl">
 <div class="row"><span>Start</span><input type="time" id="start"></div>
-<label><span class="row"><span>Snelste tempo</span><b id="pfv"></b></span><input type="range" id="pf" min="200" max="420" step="5"></label>
-<label><span class="row"><span>Langzaamste tempo</span><b id="psv"></b></span><input type="range" id="ps" min="200" max="420" step="5"></label>
 <p style="margin-top:12px;font-weight:700" id="fin"></p>
-<p class="mute" id="pc"></p>
 </div>
 
 <h2>Plekken</h2>
 <div id="spots"></div>
-<button id="rst">Alle gelogde tijden wissen</button>
+<button id="rst">Alles resetten</button>
+<p class="mute" style="margin-top:8px">Wist alle passeertijden en herstelt de starttijd en tempo-inschatting.</p>
 <p class="mute" style="margin-top:10px">Gelogde tijden blijven alleen op dit toestel staan. Vul bij een plek de echte passeertijd in: de volgende plekken en de kaart rekenen dan mee vanaf dat punt.</p>
 </main>
 <script>
@@ -121,7 +122,8 @@ const sc=TOT/cum[cum.length-1];cum=cum.map(v=>v*sc);
 function at(d){d=Math.max(0,Math.min(TOT,d));let i=1;while(i<cum.length-1&&cum[i]<d)i++;const f=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return[X[i-1][0]+f*(X[i][0]-X[i-1][0]),X[i-1][1]+f*(X[i][1]-X[i-1][1])]}
 function seg(a,b){const o=[at(a)];for(let i=0;i<cum.length;i++)if(cum[i]>a&&cum[i]<b)o.push(X[i]);o.push(at(b));return o}
 
-let S={start:36000,pf:280,ps:310,logs:{},live:false,min:0,sel:-1};
+const DEFAULTS={start:36000,pf:280,ps:310};
+let S={...DEFAULTS,logs:{},live:false,min:0,sel:-1};
 try{Object.assign(S,JSON.parse(localStorage.getItem("sup26")||"{}"))}catch(e){}
 S.live=true;
 const save=()=>{try{localStorage.setItem("sup26",JSON.stringify({start:S.start,pf:S.pf,ps:S.ps,logs:S.logs}))}catch(e){}};
@@ -165,7 +167,7 @@ function drawMap(){
 function updSpots(){const A=anchors(),P=paces(A),t=S.start+S.min*60;let nx=-1;
  SP.forEach((p,i)=>{const e=eta(p[0],A,P),lg=S.logs[i]!=null,dn=lg||e[3];
   $("#w"+i).textContent=lg?fs(S.logs[i]):dn?"ca. "+fm(e[1]):fm(e[0],Math.floor)+"–"+fm(e[2],Math.ceil);
-  $("#m"+i).textContent=lg?"Gelogd, gemiddeld "+fp((S.logs[i]-S.start)/p[0])+"/km tot hier":dn?"Voorbij, tijd geschat uit de metingen":(A.length>1?"Bijgewerkt na de laatste meting. ":"")+"Midden "+fm(e[1])+" bij "+fp(P[1])+"/km";
+  $("#m"+i).textContent=lg?"Gelogd":dn?"Voorbij, tijd geschat uit de metingen":(A.length>1?"Bijgewerkt na de laatste meting. ":"")+"Geschatte passeertijd.";
   if(nx<0&&!dn&&e[2]>t)nx=i;
   $("#s"+i).classList.toggle("done",dn)});
  SP.forEach((p,i)=>{const c=$("#s"+i).classList;c.toggle("next",i===nx);c.toggle("pick",S.sel===i)})}
@@ -175,28 +177,27 @@ function updNow(){const A=anchors(),P=paces(A),t=S.start+S.min*60,k=where(t,A,P)
  $("#sl").value=S.min;$("#live").setAttribute("aria-pressed",S.live);
  const f=eta(TOT,A,P);
  $("#fin").textContent="Finish tussen "+fm(f[0],Math.floor)+" en "+fm(f[2],Math.ceil);
- $("#pc").textContent=A.length>1?"Laatste meting: gemiddeld "+fp(P[1])+"/km. De rest rekent met "+fp(P[0])+" tot "+fp(P[2])+"/km.":"Nog geen metingen. Alles rekent met het tempo hierboven."}
+}
 function tick(){if(S.live)S.min=Math.max(0,Math.min(300,(clk()-S.start)/60));updNow();updSpots();drawMap()}
 function upd(){
  $("#sub").textContent="Zondag 15 november. Tijden gelden bij stipt vertrek om "+fm(S.start,Math.floor)+".";
  $("#start").value=fm(S.start,Math.floor);
- $("#pf").value=S.pf;$("#ps").value=S.ps;$("#pfv").textContent=fp(S.pf)+"/km";$("#psv").textContent=fp(S.ps)+"/km";
  SP.forEach((p,i)=>{$("#l"+i).value=S.logs[i]!=null?fs(S.logs[i]):""});
  save();tick()}
 
 const osm=km=>{const q=at(km),la=(P0[0][0]-q[1]/110.57).toFixed(5),lo=(P0[0][1]+q[0]/kx).toFixed(5);return"https://www.openstreetmap.org/?mlat="+la+"&amp;mlon="+lo+"#map=17/"+la+"/"+lo};
-$("#spots").innerHTML=SP.map((p,i)=>'<article class="card spot" id="s'+i+'"><div class="hd"><span class="num">'+(i+1)+'</span><div class="ti"><h3>Plek '+(i+1)+'</h3><div class="mute">km '+fk(p[0])+'</div></div><div class="win" id="w'+i+'"></div></div><div class="mute" id="m'+i+'"></div><div class="mute" id="d'+i+'"></div>'+(p[1]?'<p class="tip">'+p[1]+'</p>':'')+'<div class="links">'+p[2].map(l=>'<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+'</a>').join("")+'</div><div class="log"><label>Echte passeertijd<input type="time" step="1" id="l'+i+'"></label><button data-now="'+i+'">Nu</button><button data-clr="'+i+'">Wis</button><button data-map="'+i+'">Op kaart</button></div></article>').join("");
+$("#spots").innerHTML=SP.map((p,i)=>'<details class="card spot" id="s'+i+'" open><summary class="hd"><span class="num">'+(i+1)+'</span><div class="ti"><h3>Plek '+(i+1)+'</h3><div class="mute">km '+fk(p[0])+'</div></div><div class="win" id="w'+i+'"></div></summary><div class="spot-body"><div class="mute" id="m'+i+'"></div><div class="mute" id="d'+i+'"></div>'+(p[1]?'<p class="tip">'+p[1]+'</p>':'')+'<div class="links">'+p[2].map(l=>'<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+'</a>').join("")+'</div><div class="log"><label>Echte passeertijd<input type="time" step="1" id="l'+i+'"></label><button data-now="'+i+'">Nu</button><button data-clr="'+i+'">Wis</button><button data-map="'+i+'">Op kaart</button></div></div></details>').join("");
 
+const collapseBefore=i=>{for(let j=0;j<i;j++)$("#s"+j).open=false};
+let latestLogged=-1;SP.forEach((p,i)=>{if(S.logs[i]!=null)latestLogged=i});if(latestLogged>0)collapseBefore(latestLogged);
 $("#spots").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
- if(d.now!=null)S.logs[d.now]=clk();
+ if(d.now!=null){S.logs[d.now]=clk();collapseBefore(+d.now)}
  else if(d.clr!=null)delete S.logs[d.clr];
  else if(d.map!=null){S.sel=+d.map;zoomTo(S.sel);$("#mw").scrollIntoView({behavior:"smooth",block:"start"})}
  upd()});
-$("#spots").addEventListener("change",e=>{const t=e.target;if(t.type!="time")return;const i=+t.id.slice(1);if(t.value)S.logs[i]=hm(t.value);else delete S.logs[i];upd()});
-$("#rst").onclick=()=>{S.logs={};upd()};
+$("#spots").addEventListener("change",e=>{const t=e.target;if(t.type!="time")return;const i=+t.id.slice(1);if(t.value){S.logs[i]=hm(t.value);collapseBefore(i)}else delete S.logs[i];upd()});
+$("#rst").onclick=()=>{Object.assign(S,DEFAULTS,{logs:{},sel:-1,live:true});document.querySelectorAll(".spot").forEach(s=>s.open=true);upd()};
 $("#start").onchange=e=>{if(e.target.value)S.start=hm(e.target.value);upd()};
-$("#pf").oninput=e=>{S.pf=+e.target.value;if(S.pf>S.ps)S.ps=S.pf;upd()};
-$("#ps").oninput=e=>{S.ps=+e.target.value;if(S.ps<S.pf)S.pf=S.ps;upd()};
 $("#sl").oninput=e=>{S.live=false;S.min=+e.target.value;updNow();updSpots();drawMap()};
 $("#live").onclick=()=>{S.live=!S.live;tick()};
 $("#zr").onclick=()=>map.fitBounds(trk.getBounds(),{padding:[16,16]});
