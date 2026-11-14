@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Supportersplan Marathon Abcoude</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{--bg:#E8EEF1;--card:#F8FBFC;--ink:#10222C;--mute:#556A75;--line:#C6D3DA;--track:#1D5E8C;--band:#D9480F;--onband:#fff;--ok:#2B7A57;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0D1920;--card:#15262F;--ink:#E5EEF2;--mute:#8CA2AD;--line:#27404A;--track:#5DB2E8;--band:#FF8F55;--onband:#0D1920;--ok:#5CC79B;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0D1920;--card:#15262F;--ink:#E5EEF2;--mute:#8CA2AD;--line:#27404A;--track:#5DB2E8;--band:#FF8F55;--onband:#0D1920;--ok:#5CC79B;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Avenir Next","Segoe UI",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:560px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:32px;line-height:1.05;margin:0 0 6px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:18px;margin:28px 0 10px}
+h3{font-size:17px;margin:0}
+p{margin:0}
+.mute{color:var(--mute);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+button,input{font:inherit;color:var(--ink)}
+button{min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer}
+button[aria-pressed=true]{background:var(--band);color:var(--onband);border-color:var(--band);font-weight:700}
+input[type=time]{min-height:40px;padding:0 8px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+input[type=range]{width:100%;accent-color:var(--band);margin:6px 0 2px}
+a{color:var(--track);font-weight:600}
+#mw{position:relative;margin-top:16px}
+#map{height:64vh;min-height:340px;border:1px solid var(--line);border-radius:14px;z-index:0}
+.leaflet-container{font:inherit}
+.pin{width:26px;height:26px;border-radius:50%;background:var(--card);border:2px solid var(--ink);display:grid;place-items:center;font-weight:800;font-size:13px;color:var(--ink)}
+.pin.on{background:var(--ink);color:var(--card)}
+#zb{position:absolute;z-index:1000;top:8px;right:8px;display:flex;flex-direction:column;gap:6px}
+#zb button{min-width:44px;box-shadow:0 1px 0 var(--line)}
+.tr{fill:none;stroke:var(--track);stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.bd{fill:none;stroke:var(--band);stroke-linecap:round;stroke-linejoin:round}
+.mk{fill:var(--card);stroke:var(--ink)}
+.mt{fill:var(--ink);font-weight:800;text-anchor:middle}
+.on .mk{fill:var(--ink)}.on .mt{fill:var(--card)}
+.tk{fill:var(--mute)}
+.rn{fill:var(--band);stroke:var(--card)}
+.us{fill:#8E44EC;stroke:#fff}
+.ua{fill:#8E44EC;fill-opacity:.15;stroke:#8E44EC;stroke-opacity:.5}
+.rg{fill:var(--card);stroke:var(--band)}
+.now{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.big{font-size:34px;line-height:1.1;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:600}
+.row b{font-variant-numeric:tabular-nums}
+.ctl label{display:block;margin-top:12px}
+.spot{margin-bottom:12px}
+.hd{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.ti{flex:1}
+.num{width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:800;flex:none}
+.win{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;letter-spacing:-.01em}
+.tip{margin-top:8px;font-size:15px}
+.links{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.log{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.log label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);flex:1 1 150px}
+.spot.done{opacity:.6}
+.spot.next{border:2px solid var(--band);padding:13px}
+.spot.pick{outline:2px solid var(--track);outline-offset:2px}
+.spot.done .win{color:var(--ok)}
+</style>
+</head>
+<body>
+<main>
+<h1>Marathon Abcoude</h1>
+<p class="mute" id="sub"></p>
+
+<div id="mw">
+<div id="map" role="region" aria-label="Kaart met parcours"></div>
+<div id="zb"><button id="zr">Alles</button><button id="zl" aria-pressed="false">Locatie</button><button id="zm" hidden>Naar mij</button></div>
+</div>
+<p class="mute" style="margin-top:8px">Het oranje stuk is waar de loper kan zijn tussen het snelste en langzaamste tempo. Tik op een nummer voor de plek.</p>
+<p class="mute" id="gp" style="margin-top:4px"></p>
+
+<h2>Waar is de loper?</h2>
+<div class="card">
+<div class="now"><div><div class="big" id="nk"></div><div class="mute" id="nt"></div></div><button id="live" aria-pressed="false">Live</button></div>
+<input type="range" id="sl" min="0" max="300" step="1" aria-label="Tijd na de start">
+</div>
+
+<h2>Start en tempo</h2>
+<div class="card ctl">
+<div class="row"><span>Start</span><input type="time" id="start"></div>
+<label><span class="row"><span>Snelste tempo</span><b id="pfv"></b></span><input type="range" id="pf" min="200" max="420" step="5"></label>
+<label><span class="row"><span>Langzaamste tempo</span><b id="psv"></b></span><input type="range" id="ps" min="200" max="420" step="5"></label>
+<p style="margin-top:12px;font-weight:700" id="fin"></p>
+<p class="mute" id="pc"></p>
+</div>
+
+<h2>Plekken</h2>
+<div id="spots"></div>
+<button id="rst">Alle gelogde tijden wissen</button>
+<p class="mute" style="margin-top:10px">Gelogde tijden blijven alleen op dit toestel staan. Vul bij een plek de echte passeertijd in: de volgende plekken en de kaart rekenen dan mee vanaf dat punt.</p>
+</main>
+<script>
+const POLY="kv_~Hqoj]pO}Id@j@p@vD`AvB~J`I~Ab@b@jEvA|D`E|EzBjEcA|JMfOB`AZt@DwBhAaAxBw@zIqAt]cKfFo@NqA|VqHrr@_[pFoAdBiBtb@iSh^uRhBw@vAZtAW`FkDxBP`GaERDVdAtEj^pCrWPjHf@E@mCt@m@t@oB|ALn@wBTKhKbKb_@xM`FpAm@`]xCphBRtDtMzmAlC~b@jBjLrBlEpRpSpAtCnAvEXxGPhrAxEQ?r@lJOrBiAdEgElB?EzAg@|BR~C\\DKzKzC`m@mAlOmG~YGpAb@r@pDhC]jC}CmBoUJMXy@?HpjAW~F{AdH_@x@H|AeBjBcDvGsEtDiI|@aCc@QzEi@hEcFsBm@dLeA`KIjEwA`MuKtxAN~@`uA`zBvEjQx@rAuA~E[fCkDxHaFnP}BxDaGbBgB}DsAf@uAEcP}DsEbCsD?cEnC{BFeCfAEgCu@qEkBqHqDqGyUsYOk@_@`GLpG]pCg@s@}FsAw@HaD|A}BnDq@m@}AgD{Bw@kClBoHpAcBfDk@d@_Gh@mApCqA\\wCkCcCj@_A[m@w@cE}L{DoFeB{IcAcCa@sDk@}MoAsE_@_EHmFcCqEpB{F`AwAEy@tAqHe@yBVaF{I{IuBgFwFgY\\_CpEkFaFePkAgBjFeGJd@zAqBlAvDrBoCqeAsnCkE|Ds@d@GYy@ccEcq@h@aANeClCe@cDCeGRoGl@aEPsEv@aEFmEg@yD_FcGm@uBsByA}C}EgE{L_AoBeBaBwFqDcC]aMfC_AS}@mBkAgJe@{HaCeHmBgAgMiAaBi@aC}Bw@sBgBiOcAkEi@cEe@JKl@g@^o@KkFt@KnCe@t@mC`AqCIcD|C_DqAg@n@oD`AqC|AcDWcDRgAtAoChAuFa@NoHM{EwDyNw@qLrBcNbCsFZmFh@sCXmG~B{Fn@wCCeD[}DsAsDm@yEGmCFcC|AmIz@iQ^wCBsAu@iK{@}DKaBNeCn@gDFcH\\}Cd@_BxEgHn@gBfAcEB_FXmC~BoGlAaItAaCtBcBnC_I^q@dC{AfAeCt@CfChDfAv@j@Or@xApBsJMQ",TOT=42.289;
+const SP=[
+[6.0,"Ben je er vóór 10:25 en heb je mij om 10:32 niet gezien? Wacht dan nog even. Dat maakt de volgende punten makkelijker in te schatten.",[["Parkeren","https://maps.app.goo.gl/byjXT3D8w1TWkRyM7"],["Parcourspunt","https://maps.app.goo.gl/YPcNXxNDbovYkwPr9"]]],
+[10.9,"",[["Parkeren en supporten (doodlopende straat)","https://maps.app.goo.gl/C96pbaGyiPPuSGqh9"]]],
+[17.1,"Supporten kan overal waar je lopers ziet passeren.",[["Parkeren","https://maps.app.goo.gl/mimMAdR4mX1oyGFdA"],["Of hier, een klein stuk langs het parcours rijden","https://maps.app.goo.gl/Qwq3cRyRLPJpnxGw5"],["Supporten","https://maps.app.goo.gl/E76mKqkyCcvB5xa49"]]],
+[23.8,"Parkeren langs de baan is geen goed punt, maar kijk of het lukt. De volgende plek ligt dichtbij.",[["Kaart","https://maps.app.goo.gl/tkZaRygi3mRGpT5r9"]]],
+[26.9,"Misschien kun je parkeren op het tankstation.",[["Parkeren","https://maps.app.goo.gl/4hqU82QfpscjLbydA"]]],
+[28.5,"Reserve: parkeren langs de baan. Vermoedelijk wordt de baan na dit punt afgesloten.",[["Kaart","https://maps.app.goo.gl/jjwK8Rh7YR2Ee6b29"]]],
+[32.9,"",[["Parkeren","https://maps.app.goo.gl/XL5rLWMNPDpHm61c9"],["Parcourspunt","https://maps.app.goo.gl/is4JuBC6pHQg9afD8"]]]
+];
+const $=s=>document.querySelector(s),f2=n=>String(n).padStart(2,"0");
+const hm=s=>{const a=s.split(":").map(Number);return a[0]*3600+a[1]*60+(a[2]||0)};
+const fm=(s,r=Math.round)=>{const t=r(s/60);return f2(Math.floor(t/60)%24)+":"+f2(t%60)};
+const fs=s=>{s=Math.round(s);return f2(Math.floor(s/3600)%24)+":"+f2(Math.floor(s%3600/60))+":"+f2(s%60)};
+const fp=s=>{s=Math.round(s);return Math.floor(s/60)+":"+f2(s%60)};
+const fk=k=>k.toFixed(1).replace(".",",");
+const clk=()=>{const d=new Date();return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()};
+function dec(s){let i=0,la=0,lo=0,o=[];while(i<s.length){for(let k=0;k<2;k++){let r=0,sh=0,b;do{b=s.charCodeAt(i++)-63;r|=(b&31)<<sh;sh+=5}while(b>=32);const d=(r&1)?~(r>>1):(r>>1);if(k)lo+=d;else la+=d}o.push([la/1e5,lo/1e5])}return o}
+const P0=dec(POLY),kx=111.32*Math.cos(P0[0][0]*Math.PI/180);
+const X=P0.map(p=>[(p[1]-P0[0][1])*kx,-(p[0]-P0[0][0])*110.57]);
+let cum=[0];for(let i=1;i<X.length;i++)cum.push(cum[i-1]+Math.hypot(X[i][0]-X[i-1][0],X[i][1]-X[i-1][1]));
+const sc=TOT/cum[cum.length-1];cum=cum.map(v=>v*sc);
+function at(d){d=Math.max(0,Math.min(TOT,d));let i=1;while(i<cum.length-1&&cum[i]<d)i++;const f=(d-cum[i-1])/((cum[i]-cum[i-1])||1);return[X[i-1][0]+f*(X[i][0]-X[i-1][0]),X[i-1][1]+f*(X[i][1]-X[i-1][1])]}
+function seg(a,b){const o=[at(a)];for(let i=0;i<cum.length;i++)if(cum[i]>a&&cum[i]<b)o.push(X[i]);o.push(at(b));return o}
+
+let S={start:36000,pf:280,ps:310,logs:{},live:false,min:0,sel:-1};
+try{Object.assign(S,JSON.parse(localStorage.getItem("sup26")||"{}"))}catch(e){}
+{const d=new Date();S.live=d.getFullYear()==2026&&d.getMonth()==10&&d.getDate()==15}
+const save=()=>{try{localStorage.setItem("sup26",JSON.stringify({start:S.start,pf:S.pf,ps:S.ps,logs:S.logs}))}catch(e){}};
+
+function anchors(){const a=[{km:0,t:S.start}];Object.keys(S.logs).map(Number).sort((x,y)=>SP[x][0]-SP[y][0]).forEach(i=>a.push({km:SP[i][0],t:S.logs[i]}));return a}
+function paces(A){if(A.length<2)return[S.pf,(S.pf+S.ps)/2,S.ps];const l=A[A.length-1],p=(l.t-S.start)/l.km,h=(S.ps-S.pf)/2;return[Math.max(150,p-h),p,p+h]}
+function eta(km,A,P){const l=A[A.length-1];
+ if(km<=l.km)for(let i=0;i<A.length-1;i++){const a=A[i],b=A[i+1];if(km<=b.km){const t=a.t+(km-a.km)/(b.km-a.km)*(b.t-a.t);return[t,t,t,1]}}
+ const d=km-l.km;return[l.t+d*P[0],l.t+d*P[1],l.t+d*P[2],0]}
+function where(t,A,P){const l=A[A.length-1];
+ if(t<=l.t){for(let i=0;i<A.length-1;i++){const a=A[i],b=A[i+1];if(t<=b.t){const k=a.km+Math.max(0,t-a.t)/(b.t-a.t)*(b.km-a.km);return[k,k,k]}}return[0,0,0]}
+ return P.map(p=>Math.min(TOT,l.km+(t-l.t)/p))}
+
+const ll=q=>[P0[0][0]-q[1]/110.57,P0[0][1]+q[0]/kx];
+const map=L.map("map");
+const web=/^https?:$/.test(location.protocol)&&location.origin!=="null",osmA='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',kad='Kaartgegevens &copy; <a href="https://www.kadaster.nl">Kadaster</a>';
+const tl=(u,o)=>L.tileLayer(u,Object.assign({maxZoom:19,referrerPolicy:"origin"},o));
+const pd=n=>tl("https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0/"+n+"/EPSG:3857/{z}/{x}/{y}.png",{minZoom:6,maxNativeZoom:19,attribution:kad});
+const base={"Kaart (NL, PDOK)":pd("standaard"),"Grijs (NL, PDOK)":pd("grijs"),"Pastel (NL, PDOK)":pd("pastel"),"Luchtfoto (NL, PDOK)":tl("https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0/Actueel_ortho25/EPSG:3857/{z}/{x}/{y}.jpeg",{maxNativeZoom:19,attribution:kad})};
+if(web){base["OpenStreetMap"]=tl("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:osmA});
+ base["Topo (OpenTopoMap)"]=tl("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{subdomains:"abc",maxNativeZoom:17,attribution:osmA+', SRTM &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'});
+ base["Fiets (CyclOSM)"]=tl("https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",{subdomains:"abc",maxNativeZoom:18,attribution:osmA+', <a href="https://www.cyclosm.org">CyclOSM</a>'})}
+base[web?"OpenStreetMap":"Kaart (NL, PDOK)"].addTo(map);
+L.control.layers(base,null,{position:"topleft"}).addTo(map);
+const trk=L.polyline(P0,{color:"#1D5E8C",weight:4,opacity:.9}).addTo(map);
+map.fitBounds(trk.getBounds(),{padding:[16,16]});
+const band=L.polyline([],{color:"#D9480F",weight:8,opacity:.9}).addTo(map),rr=L.layerGroup().addTo(map),uL=L.layerGroup().addTo(map);
+const pin=i=>L.divIcon({className:"",html:'<div class="pin'+(S.sel===i?" on":"")+'">'+(i+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13]});
+const mks=SP.map((p,i)=>L.marker(ll(at(p[0])),{icon:pin(i)}).addTo(map).on("click",()=>{S.sel=i;updSpots();drawMap();$("#s"+i).scrollIntoView({behavior:"smooth",block:"center"})}));
+function zoomTo(i){map.setView(ll(at(SP[i][0])),16)}
+function drawMap(){
+ const A=anchors(),P=paces(A),k=where(S.start+S.min*60,A,P),lo=k[2],hi=k[0],wide=hi-lo>.02;
+ band.setLatLngs(wide?seg(lo,hi).map(ll):[]);
+ rr.clearLayers();
+ if(wide)[hi,lo].forEach(d=>L.circleMarker(ll(at(d)),{radius:6,color:"#D9480F",weight:3,fillColor:"#fff",fillOpacity:1}).addTo(rr));
+ L.circleMarker(ll(at(k[1])),{radius:9,color:"#fff",weight:3,fillColor:"#D9480F",fillOpacity:1}).addTo(rr);
+ mks.forEach((m,i)=>{const on=S.sel===i;if(m._on!==on){m._on=on;m.setIcon(pin(i))}});
+ uL.clearLayers();
+ if(U){L.circle([U.lat,U.lon],{radius:U.acc,color:"#8E44EC",weight:1,fillOpacity:.15}).addTo(uL);L.circleMarker([U.lat,U.lon],{radius:7,color:"#fff",weight:2,fillColor:"#8E44EC",fillOpacity:1}).addTo(uL)}}
+
+function updSpots(){const A=anchors(),P=paces(A),t=S.start+S.min*60;let nx=-1;
+ SP.forEach((p,i)=>{const e=eta(p[0],A,P),lg=S.logs[i]!=null,dn=lg||e[3];
+  $("#w"+i).textContent=lg?fs(S.logs[i]):dn?"ca. "+fm(e[1]):fm(e[0],Math.floor)+"–"+fm(e[2],Math.ceil);
+  $("#m"+i).textContent=lg?"Gelogd, gemiddeld "+fp((S.logs[i]-S.start)/p[0])+"/km tot hier":dn?"Voorbij, tijd geschat uit de metingen":(A.length>1?"Bijgewerkt na de laatste meting. ":"")+"Midden "+fm(e[1])+" bij "+fp(P[1])+"/km";
+  if(nx<0&&!dn&&e[2]>t)nx=i;
+  $("#s"+i).classList.toggle("done",dn)});
+ SP.forEach((p,i)=>{const c=$("#s"+i).classList;c.toggle("next",i===nx);c.toggle("pick",S.sel===i)})}
+function updNow(){const A=anchors(),P=paces(A),t=S.start+S.min*60,k=where(t,A,P),lo=k[2],hi=k[0];
+ $("#nk").textContent=S.min<=0?"Aan de start":lo>=TOT-.05?"Gefinisht":"km "+(hi-lo>.05?fk(lo)+"–"+fk(hi):fk(k[1]));
+ $("#nt").textContent="Om "+fm(t)+(S.live?", live":"");
+ $("#sl").value=S.min;$("#live").setAttribute("aria-pressed",S.live);
+ const f=eta(TOT,A,P);
+ $("#fin").textContent="Finish tussen "+fm(f[0],Math.floor)+" en "+fm(f[2],Math.ceil);
+ $("#pc").textContent=A.length>1?"Laatste meting: gemiddeld "+fp(P[1])+"/km. De rest rekent met "+fp(P[0])+" tot "+fp(P[2])+"/km.":"Nog geen metingen. Alles rekent met het tempo hierboven."}
+function tick(){if(S.live)S.min=Math.max(0,Math.min(300,(clk()-S.start)/60));updNow();updSpots();drawMap()}
+function upd(){
+ $("#sub").textContent="Zondag 15 november. Tijden gelden bij stipt vertrek om "+fm(S.start,Math.floor)+".";
+ $("#start").value=fm(S.start,Math.floor);
+ $("#pf").value=S.pf;$("#ps").value=S.ps;$("#pfv").textContent=fp(S.pf)+"/km";$("#psv").textContent=fp(S.ps)+"/km";
+ SP.forEach((p,i)=>{$("#l"+i).value=S.logs[i]!=null?fs(S.logs[i]):""});
+ save();tick()}
+
+const osm=km=>{const q=at(km),la=(P0[0][0]-q[1]/110.57).toFixed(5),lo=(P0[0][1]+q[0]/kx).toFixed(5);return"https://www.openstreetmap.org/?mlat="+la+"&amp;mlon="+lo+"#map=17/"+la+"/"+lo};
+$("#spots").innerHTML=SP.map((p,i)=>'<article class="card spot" id="s'+i+'"><div class="hd"><span class="num">'+(i+1)+'</span><div class="ti"><h3>Plek '+(i+1)+'</h3><div class="mute">km '+fk(p[0])+'</div></div><div class="win" id="w'+i+'"></div></div><div class="mute" id="m'+i+'"></div><div class="mute" id="d'+i+'"></div>'+(p[1]?'<p class="tip">'+p[1]+'</p>':'')+'<div class="links">'+p[2].map(l=>'<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+'</a>').join("")+'</div><div class="log"><label>Echte passeertijd<input type="time" step="1" id="l'+i+'"></label><button data-now="'+i+'">Nu</button><button data-clr="'+i+'">Wis</button><button data-map="'+i+'">Op kaart</button></div></article>').join("");
+
+$("#spots").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const d=b.dataset;
+ if(d.now!=null)S.logs[d.now]=clk();
+ else if(d.clr!=null)delete S.logs[d.clr];
+ else if(d.map!=null){S.sel=+d.map;zoomTo(S.sel);$("#mw").scrollIntoView({behavior:"smooth",block:"start"})}
+ upd()});
+$("#spots").addEventListener("change",e=>{const t=e.target;if(t.type!="time")return;const i=+t.id.slice(1);if(t.value)S.logs[i]=hm(t.value);else delete S.logs[i];upd()});
+$("#rst").onclick=()=>{S.logs={};upd()};
+$("#start").onchange=e=>{if(e.target.value)S.start=hm(e.target.value);upd()};
+$("#pf").oninput=e=>{S.pf=+e.target.value;if(S.pf>S.ps)S.ps=S.pf;upd()};
+$("#ps").oninput=e=>{S.ps=+e.target.value;if(S.ps<S.pf)S.pf=S.ps;upd()};
+$("#sl").oninput=e=>{S.live=false;S.min=+e.target.value;updNow();updSpots();drawMap()};
+$("#live").onclick=()=>{S.live=!S.live;tick()};
+$("#zr").onclick=()=>map.fitBounds(trk.getBounds(),{padding:[16,16]});
+let U=null,gw=null;
+const uq=()=>[(U.lon-P0[0][1])*kx,-(U.lat-P0[0][0])*110.57];
+const hv=(q,r)=>Math.hypot(q[0]-r[0],q[1]-r[1]);
+function centerMe(){map.setView([U.lat,U.lon],16)}
+function updLoc(){
+ SP.forEach((p,i)=>{$("#d"+i).textContent=U?"Hemelsbreed "+fk(hv(uq(),at(p[0])))+" km van jou":""});
+ if(!U)return;
+ let b=0,bd=1e9;SP.forEach((p,i)=>{const d=hv(uq(),at(p[0]));if(d<bd){bd=d;b=i}});
+ $("#gp").textContent="Jouw locatie, nauwkeurig tot ca. "+Math.round(U.acc)+" m. Dichtstbij: plek "+(b+1)+" ("+fk(bd)+" km hemelsbreed).";
+ $("#zm").hidden=false;return bd}
+function locOff(){if(gw!=null)navigator.geolocation.clearWatch(gw);gw=null;U=null;$("#zl").setAttribute("aria-pressed",false);$("#zm").hidden=true;updLoc();$("#gp").textContent="";drawMap()}
+$("#zl").onclick=()=>{
+ if(gw!=null)return locOff();
+ if(!navigator.geolocation){$("#gp").textContent="Dit toestel ondersteunt geen locatie.";return}
+ $("#gp").textContent="Locatie ophalen…";$("#zl").setAttribute("aria-pressed",true);
+ gw=navigator.geolocation.watchPosition(p=>{const first=!U;U={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy};const bd=updLoc();if(first&&bd<5)centerMe();else drawMap()},
+  e=>{locOff();$("#gp").textContent="Locatie niet beschikbaar. Geef toestemming, of open de pagina in je browser zelf."},
+  {enableHighAccuracy:true,maximumAge:5000,timeout:20000})};
+$("#zm").onclick=centerMe;
+upd();setInterval(()=>{if(S.live)tick()},5000);
+</script>
+</body>
+</html>
